@@ -52,26 +52,6 @@ func (p *Products) GetProduct(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (p *Products) RemoveProduct(rw http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id, err := strconv.Atoi(vars["id"])
-	if err != nil {
-		http.Error(rw, "Unable to convert ID", http.StatusBadRequest)
-		return
-	}
-
-	product, err := data.GetProduct(id)
-	if err != nil {
-		http.Error(rw, "Unable to get product", http.StatusInternalServerError)
-		return
-	}
-	err = product.ToJSON(rw)
-	if err != nil {
-		http.Error(rw, "Unable to marshall JSON", http.StatusInternalServerError)
-		return
-	}
-}
-
 func (p *Products) AddProduct(rw http.ResponseWriter, r *http.Request) {
 	product := r.Context().Value(KeyProduct{}).(*data.Product)
 	err := data.AddProduct(product)
