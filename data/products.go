@@ -47,6 +47,11 @@ func (p *Products) ToJSON(w io.Writer) error {
 	return e.Encode(p)
 }
 
+func (p *Product) ToJSON(w io.Writer) error {
+	e := json.NewEncoder(w)
+	return e.Encode(p)
+}
+
 func (p *Product) FromJSON(r io.Reader) error {
 	d := json.NewDecoder(r)
 	return d.Decode(p)
@@ -107,6 +112,22 @@ func UpdateProduct(id int, p *Product) error {
 	}
 
 	return nil
+}
+
+func GetProduct(id int) (Product, error) {
+	var Prod Product
+	db, err := storm.Open("products.db")
+	if err != nil {
+		return Product{}, ErrFailedToOpenDB
+	}
+	defer db.Close()
+
+	err = db.One("ID", id, &Prod)
+	if err != nil {
+		return Product{}, ErrFailedToGetProducts
+	}
+
+	return Prod, nil
 }
 
 func GetProducts() (Products, error) {

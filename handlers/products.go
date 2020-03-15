@@ -19,13 +19,40 @@ func NewProducts(l *log.Logger) *Products {
 	return &Products{l}
 }
 
-func (p *Products) GetProducts(rw http.ResponseWriter, r *http.Request) {
-	lp, err := data.GetProducts()
+func (p *Products) GetProduct(rw http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		http.Error(rw, "Unable to convert ID", http.StatusBadRequest)
+		return
+	}
+
+	product, err := data.GetProduct(id)
 	if err != nil {
 		http.Error(rw, "Unable to get products", http.StatusInternalServerError)
 		return
 	}
-	err = lp.ToJSON(rw)
+	err = product.ToJSON(rw)
+	if err != nil {
+		http.Error(rw, "Unable to marshall JSON", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (p *Products) RemoveProduct(rw http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		http.Error(rw, "Unable to convert ID", http.StatusBadRequest)
+		return
+	}
+
+	product, err := data.GetProduct(id)
+	if err != nil {
+		http.Error(rw, "Unable to get product", http.StatusInternalServerError)
+		return
+	}
+	err = product.ToJSON(rw)
 	if err != nil {
 		http.Error(rw, "Unable to marshall JSON", http.StatusInternalServerError)
 		return
