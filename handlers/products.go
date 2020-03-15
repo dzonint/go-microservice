@@ -19,6 +19,19 @@ func NewProducts(l *log.Logger) *Products {
 	return &Products{l}
 }
 
+func (p *Products) GetProducts(rw http.ResponseWriter, r *http.Request) {
+	lp, err := data.GetProducts()
+	if err != nil {
+		http.Error(rw, "Unable to get products", http.StatusInternalServerError)
+		return
+	}
+	err = lp.ToJSON(rw)
+	if err != nil {
+		http.Error(rw, "Unable to marshall JSON", http.StatusInternalServerError)
+		return
+	}
+}
+
 func (p *Products) GetProduct(rw http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
