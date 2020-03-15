@@ -7,11 +7,12 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/asdine/storm"
 	"github.com/go-playground/validator/v10"
 )
 
 type Product struct {
-	ID          int     `json:"id"`
+	ID          int     `json:"id" storm:"id,increment=3"`
 	Name        string  `json:"name" validate:"required"`
 	Description string  `json:"description"`
 	Price       float32 `json:"price" validate:"required,gt=0"`
@@ -51,40 +52,77 @@ func (p *Product) FromJSON(r io.Reader) error {
 	return d.Decode(p)
 }
 
-func AddProduct(p *Product) {
-	p.ID = getNextID()
-	productList = append(productList, p)
-}
+var ErrFailedToOpenDB = fmt.Errorf("Unable to open database")
+var ErrFailedToAddProduct = fmt.Errorf("Unable to add product to database")
+var ErrProductNotFound = fmt.Errorf("Product not found")
+var ErrFailedToUpdateDB = fmt.Errorf("Unable to update database")
+var ErrFailedToGetProducts = fmt.Errorf("Unable to fetch products")
 
-func UpdateProduct(id int, p *Product) error {
-	_, id, err := findProduct(id)
-	if err != nil {
-		return err
+func InitDB() error {
+	var err error
+	for _, val := range productList {
+		err = AddProduct(val)
+		if err != nil {
+			return err
+		}
 	}
-
-	p.ID = id
-	productList[id] = p
 	return nil
 }
 
-var ErrProductNotFound = fmt.Errorf("Product not found")
+func AddProduct(p *Product) error {
+	db, err := storm.Open("products.db")
+	if err != nil {
+		return ErrFailedToOpenDB
+	}
+	defer db.Close()
 
-func findProduct(id int) (*Product, int, error) {
-	for ind, prod := range productList {
-		if prod.ID == id {
-			return prod, ind, nil
-		}
+	p.CreatedOn = time.Now().String()
+
+	err = db.Save(p)
+	if err != nil {
+		return ErrFailedToAddProduct
 	}
 
-	return nil, 0, ErrProductNotFound
+	return nil
 }
 
-func getNextID() int {
-	return productList[len(productList)-1].ID + 1
+func UpdateProduct(id int, p *Product) error {
+	db, err := storm.Open("products.db")
+	if err != nil {
+		return ErrFailedToOpenDB
+	}
+	defer db.Close()
+
+	var prod Product
+	err = db.One("ID", id, &prod)
+	if err != nil {
+		return ErrProductNotFound
+	}
+
+	p.ID = id
+	p.UpdatedOn = time.Now().String()
+	err = db.Update(p)
+	if err != nil {
+		return ErrFailedToUpdateDB
+	}
+
+	return nil
 }
 
-func GetProducts() Products {
-	return productList
+func GetProducts() (Products, error) {
+	db, err := storm.Open("products.db")
+	if err != nil {
+		return nil, ErrFailedToOpenDB
+	}
+	defer db.Close()
+
+	var Products []*Product
+	err = db.All(&Products)
+	if err != nil {
+		return nil, ErrFailedToGetProducts
+	}
+
+	return Products, nil
 }
 
 var productList = []*Product{
@@ -93,7 +131,7 @@ var productList = []*Product{
 		Name:        "Latte",
 		Description: "Frothy milky coffee",
 		Price:       2.45,
-		SKU:         "abc323",
+		SKU:         "abc-sdfv-opfdm",
 		CreatedOn:   time.Now().UTC().String(),
 		UpdatedOn:   time.Now().UTC().String(),
 	},
@@ -102,7 +140,7 @@ var productList = []*Product{
 		Name:        "Espresso",
 		Description: "Short and strong coffee without milk",
 		Price:       1.99,
-		SKU:         "fdg33",
+		SKU:         "has-hafg-emrbo",
 		CreatedOn:   time.Now().UTC().String(),
 		UpdatedOn:   time.Now().UTC().String(),
 	},

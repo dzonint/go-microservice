@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/dzonint/go-microservice/data"
 	"github.com/dzonint/go-microservice/handlers"
 	"github.com/gorilla/mux"
 )
@@ -39,6 +40,12 @@ func main() {
 	go func() {
 		log.Fatal(s.ListenAndServe())
 	}()
+
+	err := data.InitDB()
+	if err != nil {
+		l.Fatal("[ERROR] Failed to initialize database:", err)
+	}
+	l.Println("[INFO] Database initialized successfully")
 
 	sigChan := make(chan os.Signal)
 	signal.Notify(sigChan, os.Interrupt)

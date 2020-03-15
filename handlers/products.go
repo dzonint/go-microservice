@@ -20,16 +20,28 @@ func NewProducts(l *log.Logger) *Products {
 }
 
 func (p *Products) GetProducts(rw http.ResponseWriter, r *http.Request) {
-	lp := data.GetProducts()
-	err := lp.ToJSON(rw)
+	lp, err := data.GetProducts()
+	if err != nil {
+		http.Error(rw, "Unable to get products", http.StatusInternalServerError)
+		return
+	}
+	err = lp.ToJSON(rw)
 	if err != nil {
 		http.Error(rw, "Unable to marshall JSON", http.StatusInternalServerError)
+		return
 	}
 }
 
 func (p *Products) AddProduct(rw http.ResponseWriter, r *http.Request) {
 	product := r.Context().Value(KeyProduct{}).(*data.Product)
-	data.AddProduct(product)
+	err := data.AddProduct(product)
+	if err == data.ErrFailedToOpenDB {
+		http.Error(rw, "Unable to access database", http.StatusInternalServerError)
+		return
+	} else if err == data.ErrFailedToUpdateDB {
+		http.Error(rw, "Unable to add product", http.StatusBadRequest)
+		return
+	}
 }
 
 func (p *Products) UpdateProduct(rw http.ResponseWriter, r *http.Request) {
@@ -46,8 +58,11 @@ func (p *Products) UpdateProduct(rw http.ResponseWriter, r *http.Request) {
 	if err == data.ErrProductNotFound {
 		http.Error(rw, "Product not found", http.StatusNotFound)
 		return
-	} else if err != nil {
-		http.Error(rw, "Product not found", http.StatusInternalServerError)
+	} else if err == data.ErrFailedToOpenDB {
+		http.Error(rw, "Unable to access database", http.StatusInternalServerError)
+		return
+	} else if err == data.ErrFailedToUpdateDB {
+		http.Error(rw, "Unable to update database", http.StatusBadRequest)
 		return
 	}
 }
