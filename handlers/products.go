@@ -52,6 +52,27 @@ func (p *Products) GetProduct(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (p *Products) RemoveProduct(rw http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		http.Error(rw, "Unable to convert ID", http.StatusBadRequest)
+		return
+	}
+
+	err = data.RemoveProduct(id)
+	if err == data.ErrFailedToOpenDB {
+		http.Error(rw, "Unable to access database", http.StatusInternalServerError)
+		return
+	} else if err == data.ErrProductNotFound {
+		http.Error(rw, "Product with given id not found", http.StatusBadRequest)
+		return
+	} else if err == data.ErrFailedToUpdateDB {
+		http.Error(rw, "Unable to remove product", http.StatusBadRequest)
+		return
+	}
+}
+
 func (p *Products) AddProduct(rw http.ResponseWriter, r *http.Request) {
 	product := r.Context().Value(KeyProduct{}).(*data.Product)
 	err := data.AddProduct(product)

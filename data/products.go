@@ -114,6 +114,28 @@ func UpdateProduct(id int, p *Product) error {
 	return nil
 }
 
+func RemoveProduct(id int) error {
+	db, err := storm.Open("products.db")
+	if err != nil {
+		return ErrFailedToOpenDB
+	}
+	defer db.Close()
+
+	var prod Product
+	err = db.One("ID", id, &prod)
+	if err != nil {
+		return ErrProductNotFound
+	}
+
+	prod.ID = id
+	err = db.DeleteStruct(&prod)
+	if err != nil {
+		return ErrFailedToUpdateDB
+	}
+
+	return nil
+}
+
 func GetProduct(id int) (Product, error) {
 	var Prod Product
 	db, err := storm.Open("products.db")
