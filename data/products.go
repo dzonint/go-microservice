@@ -2,7 +2,6 @@ package data
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"regexp"
 	"time"
@@ -57,13 +56,7 @@ func (p *Product) FromJSON(r io.Reader) error {
 	return d.Decode(p)
 }
 
-var ErrFailedToOpenDB = fmt.Errorf("Unable to open database")
-var ErrFailedToAddProduct = fmt.Errorf("Unable to add product to database")
-var ErrProductNotFound = fmt.Errorf("Product not found")
-var ErrFailedToUpdateDB = fmt.Errorf("Unable to update database")
-var ErrFailedToGetProducts = fmt.Errorf("Unable to fetch products")
-
-func InitDB() error {
+func PopulateDB() error {
 	var err error
 	for _, val := range productList {
 		err = AddProduct(val)

@@ -10,6 +10,7 @@ import (
 
 	"github.com/dzonint/go-microservice/data"
 	"github.com/dzonint/go-microservice/handlers"
+	"github.com/dzonint/go-microservice/rabbitmq"
 	"github.com/gorilla/mux"
 )
 
@@ -41,22 +42,41 @@ func main() {
 		WriteTimeout: 1 * time.Second,
 	}
 
+	data.InitDB("products.db")
+	err := data.PopulateDB()
+	if err != nil {
+		log.Println("[Warning] Failed to populate database `products`")
+	}
+
+	if len(os.Args) > 1 {
+		if os.Args[1] == "-rabbitmq" {
+			data.InitDB("users.db")
+
+			uh := handlers.NewUsers()
+			getRouter.HandleFunc("/users", uh.GetUsers)
+
+			rmq := rabbitmq.NewRabbitMQService()
+			go func() {
+				rmq.GenerateConsumer()
+			}()
+
+			go func() {
+				rmq.GenerateProducer()
+			}()
+		}
+	}
+
 	go func() {
 		log.Fatal(s.ListenAndServe())
 	}()
-
-	err := data.InitDB()
-	if err != nil {
-		l.Fatal("[ERROR] Failed to initialize database:", err)
-	}
-	l.Println("[INFO] Database initialized successfully")
+	log.Println("Server successfuly started")
 
 	sigChan := make(chan os.Signal)
 	signal.Notify(sigChan, os.Interrupt)
 	signal.Notify(sigChan, os.Kill)
 
 	sig := <-sigChan
-	l.Println("Received terminate, graceful shutdown", sig)
+	log.Println("Received terminate, graceful shutdown", sig)
 
 	timeoutContext, _ := context.WithTimeout(context.Background(), 30*time.Second)
 	s.Shutdown(timeoutContext)
