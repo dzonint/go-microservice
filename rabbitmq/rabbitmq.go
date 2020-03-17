@@ -62,7 +62,6 @@ func (rmq *RabbitMQService) GenerateConsumer() {
 		user := &data.User{}
 
 		err := json.Unmarshal(d.Body, user)
-
 		if err != nil {
 			log.Printf("[Consumer] Error decoding JSON: %s", err)
 		}
