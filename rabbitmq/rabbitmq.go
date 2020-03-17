@@ -105,7 +105,6 @@ func (rmq *RabbitMQService) GenerateProducer() {
 	log.Printf("Producer ready. Producer will publish new user every 10 seconds.")
 	for {
 		user, err := rmq.fetchUser()
-		handleError(err, "Error", true)
 		if err != nil {
 			log.Printf("[Producer] Error fetching user: %s", err)
 		}
