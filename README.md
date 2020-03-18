@@ -18,6 +18,7 @@ type Product struct {
 - [Storm](https://github.com/asdine/storm) for DB storage
 - [Validator](https://github.com/go-playground/validator) for data validation
 - [AMQP](https://github.com/streadway/amqp) for RabbitMQ integration
+- [Logrus](https://github.com/sirupsen/logrus) for logging
 
 ## Other resources
 - [Mockaroo](https://https://www.mockaroo.com) for mock API
