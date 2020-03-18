@@ -1,9 +1,8 @@
 package data
 
 import (
-	"log"
-
 	"github.com/asdine/storm"
+	log "github.com/sirupsen/logrus"
 )
 
 func handleError(err error, msg string) {

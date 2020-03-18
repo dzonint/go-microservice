@@ -3,13 +3,13 @@ package rabbitmq
 import (
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"time"
 
 	"github.com/dzonint/go-microservice/config"
 	"github.com/dzonint/go-microservice/data"
+	log "github.com/sirupsen/logrus"
 	"github.com/streadway/amqp"
 )
 

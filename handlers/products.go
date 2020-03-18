@@ -3,12 +3,12 @@ package handlers
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/dzonint/go-microservice/data"
 	"github.com/gorilla/mux"
+	log "github.com/sirupsen/logrus"
 )
 
 type Products struct {
@@ -115,14 +115,14 @@ func (p *Products) MiddlewareProductValidation(nextHandler http.Handler) http.Ha
 		product := &data.Product{}
 		err := product.FromJSON(r.Body)
 		if err != nil {
-			p.l.Println("[ERROR] deserializing product", err)
+			p.l.Error("Error deserializing product: ", err)
 			http.Error(rw, "Error reading product", http.StatusBadRequest)
 			return
 		}
 
 		err = product.Validate()
 		if err != nil {
-			p.l.Println("[ERROR] validating product", err)
+			p.l.Error("Error validating product: ", err)
 			http.Error(rw, fmt.Sprintf("Error validating product: &s", err), http.StatusBadRequest)
 			return
 		}

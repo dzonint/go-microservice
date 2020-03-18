@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -12,11 +11,12 @@ import (
 	"github.com/dzonint/go-microservice/handlers"
 	"github.com/dzonint/go-microservice/rabbitmq"
 	"github.com/gorilla/mux"
+	log "github.com/sirupsen/logrus"
 )
 
 func main() {
-	l := log.New(os.Stdout, "product-api", log.LstdFlags)
-	ph := handlers.NewProducts(l)
+	productLog := log.New()
+	ph := handlers.NewProducts(productLog)
 
 	sm := mux.NewRouter()
 	getRouter := sm.Methods(http.MethodGet).Subrouter()
@@ -45,7 +45,7 @@ func main() {
 	data.InitDB("products.db")
 	err := data.PopulateDB()
 	if err != nil {
-		log.Println("[Warning] Failed to populate database `products`")
+		log.Warning("Failed to populate database `products`")
 	}
 
 	if len(os.Args) > 1 {
@@ -69,14 +69,14 @@ func main() {
 	go func() {
 		log.Fatal(s.ListenAndServe())
 	}()
-	log.Println("Server successfully started")
+	log.Info("Server successfully started")
 
 	sigChan := make(chan os.Signal)
 	signal.Notify(sigChan, os.Interrupt)
 	signal.Notify(sigChan, os.Kill)
 
 	sig := <-sigChan
-	log.Println("Received terminate, graceful shutdown", sig)
+	log.Info("Received terminate, graceful shutdown ", sig)
 
 	timeoutContext, _ := context.WithTimeout(context.Background(), 30*time.Second)
 	s.Shutdown(timeoutContext)
