@@ -54,9 +54,7 @@ func (rmq *RabbitMQService) GenerateConsumer() {
 		user := &data.User{}
 
 		err := json.Unmarshal(d.Body, user)
-		if err != nil {
-			log.Printf("[Consumer] Error decoding JSON: %s", err)
-		}
+		handleError(err, "[Consumer] Error decoding JSON", false)
 
 		err = data.AddUser(user)
 		if err != nil {
@@ -96,14 +94,13 @@ func (rmq *RabbitMQService) GenerateProducer() {
 	log.Printf("Producer ready. Producer will publish new user every 10 seconds.")
 	for {
 		user, err := rmq.fetchUser()
-		if err != nil {
-			log.Printf("[Producer] Error fetching user: %s", err)
-		}
+		handleError(err, "[Producer] Error fetching user", false)
+
 		msg := amqp.Publishing{
 			Body: user,
 		}
 		err = amqpChannel.Publish("", queue.Name, false, false, msg)
-		handleError(err, "[Producer] Error publishing message:", true)
+		handleError(err, "[Producer] Error publishing message", true)
 
 		log.Printf("[Producer] AddUser: %v", string(user))
 		time.Sleep(10 * time.Second)
