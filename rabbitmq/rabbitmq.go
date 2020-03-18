@@ -44,15 +44,7 @@ func (rmq *RabbitMQService) GenerateConsumer() {
 	err = amqpChannel.Qos(1, 0, false)
 	handleError(err, "[Consumer] Could not configure QoS", true)
 
-	messageChannel, err := amqpChannel.Consume(
-		queue.Name,
-		"",
-		false,
-		false,
-		false,
-		false,
-		nil,
-	)
+	messageChannel, err := amqpChannel.Consume(queue.Name, "", false, false, false, false, nil)
 	handleError(err, "[Consumer] Could not register consumer", true)
 
 	log.Printf("Consumer ready, PID: %d", os.Getpid())
