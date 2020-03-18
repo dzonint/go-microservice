@@ -69,7 +69,7 @@ func main() {
 	go func() {
 		log.Fatal(s.ListenAndServe())
 	}()
-	log.Println("Server successfuly started")
+	log.Println("Server successfully started")
 
 	sigChan := make(chan os.Signal)
 	signal.Notify(sigChan, os.Interrupt)
